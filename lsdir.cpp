@@ -351,7 +351,7 @@ class LSDirectory {
         }
 
        private:
-        void print_size() { printf("%llu", std::size_t(s.st_size)); }
+        void print_size() { printf("%llu", uint64_t(s.st_size)); }
         void print_dirname() {
             for(int i = 0; i < dlen; ++i)
                 printf("%c", fp[i]);  // dirname
