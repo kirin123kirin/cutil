@@ -6,6 +6,7 @@
 #include <initializer_list>
 #include <stdexcept>
 #include <typeinfo>
+#include <wchar.h>
 
 #define _NmDefault 256
 
