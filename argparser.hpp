@@ -6,18 +6,10 @@
 #include <initializer_list>
 #include <stdexcept>
 #include <typeinfo>
-#include <wchar.h>
 
 #define _NmDefault 256
 
 enum class TP { INTEGER, STRING, BOOLEAN, NONE };
-
-int64_t as_int64(const char* v) { return atoll(v); }
-int64_t as_int64(const wchar_t* v) {
-    std::size_t len = std::char_traits<wchar_t>::length(v);
-    wchar_t* end = (wchar_t*)(v + len);
-    return wcstoll(v, &end, 10);
-}
 
 template <typename CharT = char>
 struct Option {
@@ -135,6 +127,13 @@ struct Options {
     void logger(const wchar_t* format, const wchar_t* arg) {
         if(format && arg)
             fwprintf(stderr, format, arg);
+    }
+
+    int64_t as_int64(const char* v) { return atoll(v); }
+    int64_t as_int64(const wchar_t* v) {
+        std::size_t len = std::char_traits<wchar_t>::length(v);
+        wchar_t* end = (wchar_t*)(v + len);
+        return wcstoll(v, &end, 10);
     }
 
     iterator find(const CharT __u) {

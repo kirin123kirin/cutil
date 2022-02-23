@@ -310,15 +310,9 @@ class LSDirectory {
             else
                 printf("%d", s.st_gid);
         }
-#if defined(__APPLE__)
-        void print_atime() { datetimestr(s.st_atime); }
-        void print_mtime() { datetimestr(s.st_mtime); }
-        void print_ctime() { datetimestr(s.st_ctime); }
-#else
         void print_atime() { datetimestr(s.st_atim); }
         void print_mtime() { datetimestr(s.st_mtim); }
         void print_ctime() { datetimestr(s.st_ctim); }
-#endif
 #endif
         void print_info() {
             char* p = lsdir.display_order;
