@@ -67,7 +67,7 @@ jobs:
           pip install cmake ninja
           brew reinstall gcc
           PATH=$PATH:$(python -c "import sysconfig; print(sysconfig.get_path('scripts'))")
-          cmake -G Ninja -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+          cmake -G Ninja -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++
           
           cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
 
