@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <time.h>
 #include <type_traits>
+#include <iterator>
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <Windows.h>
@@ -16,6 +17,9 @@
 #include <grp.h>
 #include <pwd.h>
 #include <unistd.h>
+#endif
+#if defined(__APPLE__)
+#include <sys/syslimits.h>
 #endif
 
 #include "argparser.hpp"
@@ -306,10 +310,15 @@ class LSDirectory {
             else
                 printf("%d", s.st_gid);
         }
+#if defined(__APPLE__)
+        void print_atime() { datetimestr(s.st_atime); }
+        void print_mtime() { datetimestr(s.st_mtime); }
+        void print_ctime() { datetimestr(s.st_ctime); }
+#else
         void print_atime() { datetimestr(s.st_atim); }
         void print_mtime() { datetimestr(s.st_mtim); }
         void print_ctime() { datetimestr(s.st_ctim); }
-
+#endif
 #endif
         void print_info() {
             char* p = lsdir.display_order;
