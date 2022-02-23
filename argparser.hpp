@@ -6,8 +6,6 @@
 #include <initializer_list>
 #include <stdexcept>
 #include <typeinfo>
-#include <iterator>
-#include <type_traits>
 #include <string>
 
 #define _NmDefault 256
