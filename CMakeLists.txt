@@ -8,14 +8,13 @@ project(cutil)
 add_executable(lsdir lsdir.cpp)
 
 if (WIN32)
-set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
-set( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
 
 add_custom_command(
   TARGET lsdir POST_BUILD
-  COMMAND powershell compress-archive 
-    -Path ${CMAKE_BINARY_DIR}/lsdir.exe
-    -DestinationPath ${CMAKE_BINARY_DIR}/lsdir.zip
+  COMMAND if exist ${CMAKE_BINARY_DIR}/Release/lsdir.exe (
+  powershell compress-archive -Path ${CMAKE_BINARY_DIR}/Release/lsdir.exe -DestinationPath ${CMAKE_BINARY_DIR}/lsdir.zip
+  ) else (
+  powershell compress-archive -Path ${CMAKE_BINARY_DIR}/lsdir.exe -DestinationPath ${CMAKE_BINARY_DIR}/lsdir.zip)
   VERBATIM)
 
 else (WIN32)
