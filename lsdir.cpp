@@ -18,9 +18,7 @@
 #include <pwd.h>
 #include <unistd.h>
 #endif
-#if defined(__APPLE__)
-#include <sys/syslimits.h>
-#endif
+
 
 #include "argparser.hpp"
 

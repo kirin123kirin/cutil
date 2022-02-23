@@ -2,10 +2,13 @@
 #ifndef _ARGPARSE_HPP_
 #define _ARGPARSE_HPP_
 
-#include <cstring>
+#include <string.h>
 #include <initializer_list>
 #include <stdexcept>
 #include <typeinfo>
+#include <iterator>
+#include <type_traits>
+#include <string>
 
 #define _NmDefault 256
 
