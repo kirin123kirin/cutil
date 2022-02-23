@@ -7,20 +7,21 @@ project(cutil)
 
 add_executable(lsdir lsdir.cpp)
 
+string(TOLOWER ${CMAKE_HOST_SYSTEM_NAME}${CMAKE_HOST_SYSTEM_PROCESSOR} PLATNAME)
+
 if (WIN32)
 
 add_custom_command(
   TARGET lsdir POST_BUILD
-  COMMAND if exist ${CMAKE_BINARY_DIR}/Release/lsdir.exe (
-  powershell compress-archive -Path ${CMAKE_BINARY_DIR}/Release/lsdir.exe -DestinationPath ${CMAKE_BINARY_DIR}/lsdir.zip
-  ) else (
-  powershell compress-archive -Path ${CMAKE_BINARY_DIR}/lsdir.exe -DestinationPath ${CMAKE_BINARY_DIR}/lsdir.zip)
+  COMMAND powershell compress-archive 
+    -Path ${CMAKE_BINARY_DIR}/lsdir.exe
+    -DestinationPath ${CMAKE_BINARY_DIR}/lsdir_win${CMAKE_HOST_SYSTEM_PROCESSOR}.zip
   VERBATIM)
 
 else (WIN32)
 add_custom_command(
   TARGET lsdir POST_BUILD
-  COMMAND gzip ${CMAKE_BINARY_DIR}/lsdir
+  COMMAND mv ${CMAKE_BINARY_DIR}/lsdir ${CMAKE_BINARY_DIR}/lsdir_${PLATNAME} && gzip ${CMAKE_BINARY_DIR}/lsdir_${PLATNAME}
   VERBATIM)
 
 endif (WIN32)
