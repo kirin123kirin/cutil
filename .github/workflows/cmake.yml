@@ -56,8 +56,8 @@ jobs:
       - name: windows or linux build
         if: ${{ matrix.platform != 'macos-latest' }}
         run: |
-          pip install ninja
-          cmake -G Ninja -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+          pip install cmake ninja
+          cmake -G Ninja -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
           cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
 
       - name: osx build
