@@ -6,7 +6,7 @@
 #include <initializer_list>
 #include <stdexcept>
 #include <typeinfo>
-#include <string>
+#include <string> /* for char_traits */
 
 #define _NmDefault 256
 
@@ -130,7 +130,11 @@ struct Options {
             fwprintf(stderr, format, arg);
     }
 
-    int64_t as_int64(const char* v) { return atoll(v); }
+    int64_t as_int64(const char* v) {
+        // return atoll(v);
+        char* end;
+        return strtol(v, &end, 10);
+     }
     int64_t as_int64(const wchar_t* v) {
         std::size_t len = std::char_traits<wchar_t>::length(v);
         wchar_t* end = (wchar_t*)(v + len);
