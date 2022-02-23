@@ -308,9 +308,16 @@ class LSDirectory {
             else
                 printf("%d", s.st_gid);
         }
+#if defined(__APPLE__)
+        void print_atime() { datetimestr(s.st_atimespec); }
+        void print_mtime() { datetimestr(s.st_mtimespec); }
+        void print_ctime() { datetimestr(s.st_ctimespec); }
+#else
         void print_atime() { datetimestr(s.st_atim); }
         void print_mtime() { datetimestr(s.st_mtim); }
         void print_ctime() { datetimestr(s.st_ctim); }
+#endif
+
 #endif
         void print_info() {
             char* p = lsdir.display_order;
@@ -344,7 +351,7 @@ class LSDirectory {
         }
 
        private:
-        void print_size() { printf("%lu", s.st_size); }
+        void print_size() { printf("%llu", s.st_size); }
         void print_dirname() {
             for(int i = 0; i < dlen; ++i)
                 printf("%c", fp[i]);  // dirname
