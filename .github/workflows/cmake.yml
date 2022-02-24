@@ -61,14 +61,8 @@ jobs:
           cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
           cmake --build build --config ${{env.BUILD_TYPE}}
 
-      - uses: shogo82148/actions-upload-release-asset@v1
-        if: ${{ matrix.platform == 'windows-latest' }}
-        with:
-          upload_url: ${{ needs.create.outputs.url }}
-          asset_path: "build/*.exe"
 
       - uses: shogo82148/actions-upload-release-asset@v1
-        if: ${{ matrix.platform != 'windows-latest' }}
         with:
           upload_url: ${{ needs.create.outputs.url }}
           asset_path: "build/*.gz"
