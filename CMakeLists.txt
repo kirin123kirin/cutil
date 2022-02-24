@@ -17,6 +17,7 @@ endif (WIN32)
 
 add_custom_command(
   TARGET lsdir POST_BUILD
-  COMMAND chmod a+x ${CMAKE_BINARY_DIR}/lsdir && tar czf ${CMAKE_BINARY_DIR}/lsdir_${PLATNAME}.tar.gz ${CMAKE_BINARY_DIR}/lsdir
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+  COMMAND chmod a+x lsdir && tar czf lsdir_${PLATNAME}.tar.gz lsdir
   VERBATIM)
 
