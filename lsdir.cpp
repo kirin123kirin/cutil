@@ -7,8 +7,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <time.h>
-#include <type_traits>
 #include <iterator>
+#include <type_traits>
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <Windows.h>
@@ -18,7 +18,6 @@
 #include <pwd.h>
 #include <unistd.h>
 #endif
-
 
 #include "argparser.hpp"
 
@@ -148,12 +147,13 @@ class LSDirectory {
 
             if(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
                 fnlen = strnlen(fn, MAX_PATH);
-                fn[fnlen] = '\\';
-                fn[fnlen + 1] = '*';
                 if(disp_dirs)
                     FileInfo(*this, fn, dlen).print_info();
-                if(depth < maxdepth)
+                if(depth < maxdepth) {
+                    fn[fnlen] = '\\';
+                    fn[fnlen + 1] = '*';
                     recursive_ls(fn, ++depth);
+                }
             } else if(disp_files) {
                 FileInfo(*this, fn, dlen).print_info();
             }
@@ -215,8 +215,7 @@ class LSDirectory {
 
 #endif
 
-    class FileInfo {
-       public:
+    struct FileInfo {
         LSDirectory& lsdir;
         unsigned char tp;
         char* fp;
@@ -350,12 +349,9 @@ class LSDirectory {
             printf("\n");
         }
 
-       private:
-        void print_size() {
-            printf("%lu", s.st_size);
-        }
+        void print_size() { printf("%lu", s.st_size); }
         void print_dirname() {
-            for(int i = 0; i < dlen; ++i)
+            for(int i = 0; i < dlen - 1; ++i)
                 printf("%c", fp[i]);  // dirname
         }
         void print_basename() { printf("%s", fp + dlen); }
@@ -457,9 +453,9 @@ int main(int argc, const char** argv) {
         for(std::size_t i = 0, end = args.size(); i < end; ++i) {
             auto a = args[i];
             if(a && ++count) {
-                if (a[0] == '.' && a[1] == 0)
+                if(a[0] == '.' && a[1] == 0)
                     LD.recursive_ls("./*");
-                else if (a[0] == '.' && a[1] == '.' && a[2] == 0)
+                else if(a[0] == '.' && a[1] == '.' && a[2] == 0)
                     LD.recursive_ls("../*");
                 else
                     LD.recursive_ls(a);
@@ -467,7 +463,7 @@ int main(int argc, const char** argv) {
         }
         if(count == 0)
             LD.recursive_ls("./*");
-        
+
     } catch(std::exception& e) {
         fprintf(stderr, "%s\n\n", e.what());
         return 1;
