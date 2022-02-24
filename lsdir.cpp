@@ -14,12 +14,13 @@
 #include <Windows.h>
 #else
 #include <dirent.h>
+#include <glob.h>
 #include <grp.h>
 #include <pwd.h>
 #include <unistd.h>
 #endif
 
-#include "argparser.hpp"
+#include "cutil/argparser.hpp"
 
 using Traits = std::char_traits<char>;
 
@@ -44,6 +45,7 @@ class LSDirectory {
     std::size_t flen;
 
    public:
+    bool header;
     bool follow_symlink;
     char* format;
     char* sep;
@@ -58,6 +60,7 @@ class LSDirectory {
           keta(0),
           pos(0),
           newform(),
+          header(true),
           follow_symlink(false),
           format(DATETIME_FORMAT),
           sep(DEFAULT_SEPARATOR),
@@ -166,54 +169,103 @@ class LSDirectory {
 
 #else
 
-    int recursive_ls(const char* dp, std::size_t depth = 0) {
-        if(dp == NULL)
+    int recursive_ls(const char* _dp, std::size_t depth = 0) {
+        if(_dp == NULL)
             return -1;
-        DIR* const dir = opendir(dp);
 
-        if(dir == NULL) {
-            fprintf(stderr, "open failed: %s\n", dp);
-            return -1;
-        }
+        glob_t globbuf;
+        struct stat st;
 
-        try {
-            char fp[PATH_MAX] = {0};
+        if(glob(_dp, 0, NULL, &globbuf))
+            fprintf(stderr, "Not Found File or Directory: %s\n", _dp);
 
-            std::size_t dlen = strnlen(dp, PATH_MAX);
-            Traits::copy(fp, dp, dlen);
-
-            if(dlen == PATH_MAX)
-                goto error;
-
-            fp[dlen] = '/';
-
-            for(dirent* entry = readdir(dir); entry != NULL; entry = readdir(dir)) {
-                const char* name = entry->d_name;
-                if(name[0] == 0 || (name[0] == '.' && name[1] == 0) ||
-                   (name[0] == '.' && name[1] == '.' && name[2] == 0))
-                    continue;
-
-                Traits::copy(fp + dlen + 1, name, sizeof(dirent::d_name));
-                if(entry->d_type == DT_DIR) {
-                    if(disp_dirs)
-                        FileInfo(*this, entry->d_type, fp, dlen).print_info();
-                    if(depth < maxdepth)
-                        recursive_ls(fp, ++depth);
-                } else if(disp_files) {
-                    FileInfo(*this, entry->d_type, fp, dlen).print_info();
-                }
+        for(std::size_t i = 0, end = globbuf.gl_pathc; i < end; i++) {
+            char* dp = globbuf.gl_pathv[i];
+            if(stat(dp, &st) == 0 && (st.st_mode & S_IFMT) != S_IFDIR) {
+                FileInfo(*this, DT_REG, dp, strnlen(dp, PATH_MAX)).print_info();
+                continue;
             }
+
+            DIR* const dir = opendir(dp);
+
+            if(dir == NULL) {
+                fprintf(stderr, "open failed: %s\n", dp);
+                goto error;
+            }
+
+            try {
+                char fp[PATH_MAX] = {0};
+
+                std::size_t dlen = strnlen(dp, PATH_MAX);
+                Traits::copy(fp, dp, dlen);
+
+                if(dlen == PATH_MAX)
+                    goto error;
+
+                fp[dlen] = '/';
+
+                for(dirent* entry = readdir(dir); entry != NULL; entry = readdir(dir)) {
+                    const char* name = entry->d_name;
+                    if(name[0] == 0 || (name[0] == '.' && name[1] == 0) ||
+                       (name[0] == '.' && name[1] == '.' && name[2] == 0))
+                        continue;
+
+                    Traits::copy(fp + dlen + 1, name, sizeof(dirent::d_name));
+                    if(entry->d_type == DT_DIR) {
+                        if(disp_dirs)
+                            FileInfo(*this, entry->d_type, fp, dlen).print_info();
+                        if(depth < maxdepth)
+                            recursive_ls(fp, ++depth);
+                    } else if(disp_files) {
+                        FileInfo(*this, entry->d_type, fp, dlen).print_info();
+                    }
+                }
+                closedir(dir);
+                continue;
+            } catch(...) {
+                goto error;
+            }
+        error:
             closedir(dir);
-            return 0;
-        } catch(...) {
-            goto error;
+            globfree(&globbuf);
+            return -1;
         }
-    error:
-        closedir(dir);
-        return -1;
+        globfree(&globbuf);
+        return 0;
     }
 
 #endif
+
+    void print_header() {
+        char* p = display_order;
+        int i = 0;
+        while(*p) {
+            if(i != 0)
+                printf("%s", sep);
+            if(*p == 'a')
+                printf("%s", "atime");
+            else if(*p == 'b')
+                printf("%s", "basename");
+            else if(*p == 'c')
+                printf("%s", "ctime");
+            else if(*p == 'd')
+                printf("%s", "dirname");
+            else if(*p == 'f')
+                printf("%s", "fullpath");
+            else if(*p == 'g')
+                printf("%s", "gid");
+            else if(*p == 'm')
+                printf("%s", "mtime");
+            else if(*p == 'p')
+                printf("%s", "permission");
+            else if(*p == 's')
+                printf("%s", "size");
+            else if(*p == 'u')
+                printf("%s", "uid");
+            ++p, ++i;
+        }
+        printf("\n");
+    }
 
     struct FileInfo {
         LSDirectory& lsdir;
@@ -397,6 +449,7 @@ int main(int argc, const char** argv) {
                                "recursive output files detail infomations.\n"
                                "like `ls -lR xx` added fullpath\n");
     LSDirectory LD;
+    LD.header = true;
     LD.follow_symlink = false;
     LD.maxdepth = -1;
     LD.sep = const_cast<char*>("\t");
@@ -405,6 +458,7 @@ int main(int argc, const char** argv) {
 
     char t = 'B';
 
+    args.append(&LD.header, 'n', "noheader", "output no header\n", 0);
     args.append(&LD.follow_symlink, 'l', "follow-symlink",
                 "if symbolic link file then do output readlink to file infomation.\n", 0);
 
@@ -448,6 +502,9 @@ int main(int argc, const char** argv) {
             LD.disp_dirs = false;
         else if(t != 'B')
             return 1;
+
+        if(LD.header)
+            LD.print_header();
 
         int count = 0;
         for(std::size_t i = 0, end = args.size(); i < end; ++i) {
