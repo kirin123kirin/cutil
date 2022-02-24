@@ -5,12 +5,53 @@
 #include <string.h>
 #include <initializer_list>
 #include <stdexcept>
-#include <typeinfo>
 #include <string> /* for char_traits */
+#include <typeinfo>
 
 #define _NmDefault 256
 
 enum class TP { INTEGER, STRING, BOOLEAN, NONE };
+
+template <typename CharT = char, typename Traits = std::char_traits<CharT>>
+int unescape(CharT* buf) {
+    char* pos;
+    std::size_t len = Traits::length(buf);
+    if((pos = const_cast<CharT*>(Traits::find(buf, len, '\\'))) == nullptr)
+        return 0;
+    if(len > 1023)
+        return -1;
+    CharT tmp[1024] = {0};
+    for(CharT *t = tmp, *p = pos, *end = buf + len; p < end; ++p, ++t) {
+        if(*p != '\\') {
+            *t = *p;
+            continue;
+        }
+        if(*++p == 'b')
+            *t = '\b';
+        else if(*p == 'f')
+            *t = '\f';
+        else if(*p == 'n')
+            *t = '\n';
+        else if(*p == 'r')
+            *t = '\r';
+        else if(*p == 't')
+            *t = '\t';
+        else if(*p == 'v')
+            *t = '\v';
+        else if(*p == '\\')
+            *t = '\\';
+        else if(*p == '?')
+            *t = '\?';
+        else if(*p == '?')
+            *t = '\'';
+        else if(*p == '"')
+            *t = '\"';
+        else if(*p == '0')
+            *t = '\0';
+    }
+    Traits::move(pos, tmp, len - (pos - buf));
+    return 0;
+}
 
 template <typename CharT = char>
 struct Option {
@@ -134,7 +175,7 @@ struct Options {
         // return atoll(v);
         char* end;
         return strtol(v, &end, 10);
-     }
+    }
     int64_t as_int64(const wchar_t* v) {
         std::size_t len = std::char_traits<wchar_t>::length(v);
         wchar_t* end = (wchar_t*)(v + len);

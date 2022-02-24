@@ -20,7 +20,7 @@
 #include <unistd.h>
 #endif
 
-#include "cutil/argparser.hpp"
+#include "argparser.hpp"
 
 using Traits = std::char_traits<char>;
 
@@ -494,6 +494,7 @@ int main(int argc, const char** argv) {
                 0);
 
     args.parse(argc, argv);
+    unescape(LD.sep);
 
     try {
         if(t == 'd')
