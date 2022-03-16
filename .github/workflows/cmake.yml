@@ -65,6 +65,7 @@ jobs:
         uses: crazy-max/ghaction-virustotal@v2
         with:
           vt_api_key: ${{ secrets.VT_API_KEY }}
+          update_release_body: true
           files: build/*.gz
 
       - uses: shogo82148/actions-upload-release-asset@v1
