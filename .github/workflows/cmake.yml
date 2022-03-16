@@ -68,9 +68,9 @@ jobs:
          vt_monitor: true
          monitor_path: build
          files: build/*.gz
-      
-    - uses: shogo82148/actions-upload-release-asset@v1
-      with:
-        upload_url: ${{ needs.create.outputs.url }}
-        asset_path: "build/*.gz"
+
+     - uses: shogo82148/actions-upload-release-asset@v1
+       with:
+         upload_url: ${{ needs.create.outputs.url }}
+         asset_path: "build/*.gz"
 
